@@ -2,6 +2,7 @@ import pandas as pd
 import pickle
 import dash
 import dash_auth
+import dash_table
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
@@ -10,21 +11,38 @@ cf.go_offline()
 cf.set_config_file(offline=False, world_readable=True)
 
 df = pd.read_csv("./data/heart.csv")
+
+# Load Model
 lr = pickled_model = pickle.load(open('./data/lr_model.pkl', 'rb'))
 
+# CSS stylesheet
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
+# Username and Password
 VALID_USERNAME_PASSWORD_PAIRS = {
     'username': 'password'
 }
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
+
+# Authentication
 auth = dash_auth.BasicAuth(
     app,
     VALID_USERNAME_PASSWORD_PAIRS
 )
 
+# Create Table
+table = go.Figure(data=[go.Table(
+    header=dict(values=list(df.columns),
+                fill_color='lightgrey',
+                align='left'),
+    cells=dict(values=[df.age, df.sex, df.cp, df.trestbps, df.chol, df.fbs, df.restecg,
+                      df.thalach, df.exang, df.oldpeak, df.slope, df.ca, df.thal, df.target],
+               fill_color='whitesmoke',
+               align='left'))
+])
+    
 # Create Histogram
 df['Positive'] = df[df['target'] == 1]['age']
 df['Negative'] = df[df['target'] == 0]['age']
@@ -36,13 +54,16 @@ histogram = df[['Negative', 'Positive']].iplot(kind='histogram',
                                                xTitle='Ages',
                                                yTitle='Count',
                                                asFigure=True)
+# Create Heatmap
+df = pd.read_csv("./data/heart.csv")
+fig = px.imshow(df.corr(), text_auto=True, aspect="auto", color_continuous_scale='RdBu_r') 
 
 app.layout = html.Div([
     dcc.Tabs([
         # TAB 1
         dcc.Tab(label='Heart Disease Prediction Tool', children=[
             html.H1('Heart Disease Prediction Tool', style={'textAlign': 'center', 'margin-bottom': '-4px'}),
-            html.Div('Please enter the requested information:', style={'textAlign': 'center'}),
+            html.P('Please enter the information below:', style={'textAlign': 'center'}),
 
             html.H5('Age:', style={'textAlign': 'center'}),
             # Age - Slider
@@ -208,10 +229,12 @@ app.layout = html.Div([
         # TAB 2
         dcc.Tab(label='Data Visualizations', children=[
             html.H1('Data Visualizations', style={'textAlign': 'center'}),
-            dcc.Graph(
-                id='histogram',
-                figure=histogram
-            )
+            # Display Table\
+            dcc.Graph(figure=table),
+            # Display Histogram
+            dcc.Graph(figure=histogram),
+            # Display Heatmap
+            dcc.Graph(figure=fig)
         ])
     ])
 ])
@@ -239,15 +262,15 @@ def update_output(age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, ol
                            'chol': [chol], 'fbs': [fbs], 'restecg': [restecg], 'thalach': [thalach],
                            'exang': [exang], 'oldpeak': [oldpeak], 'slope': [slope], 'ca': [ca],
                            'thal': [thal]})
-    predictions = lr.predict(values)
 
-    if predictions == 1:
+    if lr.predict(values) == 1:
         return html.H5(("Heart Disease is likely. Confidence: ", str(int(lr.predict_proba(values)[:, 1] * 100)) + "%."),
                        style={'textAlign': 'center', 'color': 'red'})
     else:
         return html.H5(
-            ("Heart Disease is unlikly. Confidence: ", str(int(lr.predict_proba(values)[:, 0] * 100)) + "%."),
+            ("Heart Disease is unlikely. Confidence: ", str(int(lr.predict_proba(values)[:, 0] * 100)) + "%."),
             style={'textAlign': 'center', 'color': 'green'})
 
+    
 if __name__ == '__main__':
     app.run_server(debug=False)
