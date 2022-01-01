@@ -183,7 +183,7 @@ app.layout = html.Div([
                 id='oldpeak',
                 min=0,
                 max=6,
-                step=1,
+                step=0.1,
                 value=3,
                 tooltip={"placement": "bottom", "always_visible": True},
             ),
