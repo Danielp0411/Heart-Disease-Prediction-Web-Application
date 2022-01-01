@@ -2,10 +2,12 @@ import pandas as pd
 import pickle
 import dash
 import dash_auth
-import dash_table
+from dash import dash_table
 from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output
+import plotly.express as px
+import plotly.graph_objects as go
 import cufflinks as cf
 cf.go_offline()
 cf.set_config_file(offline=False, world_readable=True)
