@@ -12,10 +12,10 @@ import cufflinks as cf
 cf.go_offline()
 cf.set_config_file(offline=False, world_readable=True)
 
-df = pd.read_csv("./data/heart.csv")
+df = pd.read_csv("heart.csv")
 
 # Load Model
-lr = pickled_model = pickle.load(open('./data/lr_model.pkl', 'rb'))
+lr = pickled_model = pickle.load(open('lr_model.pkl', 'rb'))
 
 # CSS stylesheet
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -57,7 +57,7 @@ histogram = df[['Negative', 'Positive']].iplot(kind='histogram',
                                                yTitle='Count',
                                                asFigure=True)
 # Create Heatmap
-df = pd.read_csv("./data/heart.csv")
+df = pd.read_csv("heart.csv")
 fig = px.imshow(df.corr(), text_auto=True, aspect="auto", color_continuous_scale='RdBu_r') 
 
 app.layout = html.Div([
